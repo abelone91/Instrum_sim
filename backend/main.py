@@ -156,6 +156,194 @@ async def set_parameter(simulator_id: str, param_name: str, value: Any):
     simulator.set_parameter(param_name, value)
     return {"status": "ok", "simulator_id": simulator_id, "parameter": param_name, "value": value}
 
+@app.post("/api/simulators")
+async def add_simulator(instrument_config: Dict[str, Any]):
+    """Add a new simulator"""
+    global simulation_engine
+
+    if not simulation_engine:
+        raise HTTPException(status_code=503, detail="Simulation engine not initialized")
+
+    try:
+        # Add to config data
+        config_manager.config_data.setdefault('instruments', []).append(instrument_config)
+
+        # Reinitialize simulation engine
+        simulation_engine.stop()
+        config_manager.create_simulators()
+        config_manager.allocate_io()
+        config_manager.create_links()
+
+        simulation_engine = SimulationEngine(config_manager)
+        simulation_engine.initialize_hardware()
+        simulation_engine.start()
+
+        # Save config
+        config_manager.save_config()
+
+        return {"status": "added", "id": instrument_config.get('id')}
+
+    except Exception as e:
+        logger.error(f"Failed to add simulator: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/api/simulators/{simulator_id}")
+async def delete_simulator(simulator_id: str):
+    """Delete a simulator"""
+    global simulation_engine
+
+    if not simulation_engine:
+        raise HTTPException(status_code=503, detail="Simulation engine not initialized")
+
+    try:
+        # Remove from config data
+        instruments = config_manager.config_data.get('instruments', [])
+        config_manager.config_data['instruments'] = [
+            inst for inst in instruments if inst.get('id') != simulator_id
+        ]
+
+        # Reinitialize simulation engine
+        simulation_engine.stop()
+        config_manager.create_simulators()
+        config_manager.allocate_io()
+        config_manager.create_links()
+
+        simulation_engine = SimulationEngine(config_manager)
+        simulation_engine.initialize_hardware()
+        simulation_engine.start()
+
+        # Save config
+        config_manager.save_config()
+
+        return {"status": "deleted", "id": simulator_id}
+
+    except Exception as e:
+        logger.error(f"Failed to delete simulator: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.put("/api/simulators/{simulator_id}")
+async def update_simulator(simulator_id: str, instrument_config: Dict[str, Any]):
+    """Update a simulator configuration"""
+    global simulation_engine
+
+    if not simulation_engine:
+        raise HTTPException(status_code=503, detail="Simulation engine not initialized")
+
+    try:
+        # Find and update in config data
+        instruments = config_manager.config_data.get('instruments', [])
+        found = False
+        for i, inst in enumerate(instruments):
+            if inst.get('id') == simulator_id:
+                instruments[i] = instrument_config
+                found = True
+                break
+
+        if not found:
+            raise HTTPException(status_code=404, detail=f"Simulator '{simulator_id}' not found")
+
+        # Reinitialize simulation engine
+        simulation_engine.stop()
+        config_manager.create_simulators()
+        config_manager.allocate_io()
+        config_manager.create_links()
+
+        simulation_engine = SimulationEngine(config_manager)
+        simulation_engine.initialize_hardware()
+        simulation_engine.start()
+
+        # Save config
+        config_manager.save_config()
+
+        return {"status": "updated", "id": simulator_id}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to update simulator: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/instrument-types")
+async def get_instrument_types():
+    """Get available instrument types and their parameter schemas"""
+    return {
+        "types": {
+            "level": {
+                "name": "Level Simulator",
+                "description": "Tank level measurement with 4-20mA output and HH alarm",
+                "parameters": {
+                    "tank_height_mm": {"type": "number", "default": 2000, "label": "Tank Height (mm)"},
+                    "height_100_percent": {"type": "number", "default": 2000, "label": "100% Height (mm)"},
+                    "height_hh_alarm": {"type": "number", "default": 1800, "label": "HH Alarm Height (mm)"},
+                    "tank_volume_m3": {"type": "number", "default": 10.0, "label": "Tank Volume (m³)"}
+                },
+                "io_types": ["level_output:analog_out", "hh_alarm_output:digital_out"],
+                "link_types": ["flowmeter"]
+            },
+            "valve": {
+                "name": "Valve Simulator",
+                "description": "On/off valve with configurable speeds",
+                "parameters": {
+                    "open_speed_sec": {"type": "number", "default": 5.0, "label": "Open Speed (sec)"},
+                    "close_speed_sec": {"type": "number", "default": 5.0, "label": "Close Speed (sec)"},
+                    "has_hold_solenoid": {"type": "boolean", "default": False, "label": "Hold Solenoid"},
+                    "has_return_spring": {"type": "boolean", "default": False, "label": "Return Spring"},
+                    "valve_type": {"type": "select", "default": "import", "options": ["import", "export"], "label": "Valve Type"}
+                },
+                "io_types": ["open_input:digital_in", "close_input:digital_in", "hold_input:digital_in"],
+                "link_types": []
+            },
+            "pump": {
+                "name": "Pump Simulator",
+                "description": "Centrifugal pump with pressure and flow",
+                "parameters": {
+                    "control_type": {"type": "select", "default": "digital", "options": ["digital", "analog"], "label": "Control Type"},
+                    "max_pressure_bar": {"type": "number", "default": 10.0, "label": "Max Pressure (bar)"},
+                    "set_pressure_bar": {"type": "number", "default": 8.0, "label": "Set Pressure (bar)"},
+                    "max_flow_lpm": {"type": "number", "default": 100.0, "label": "Max Flow (L/min)"},
+                    "ramp_time_sec": {"type": "number", "default": 5.0, "label": "Ramp Time (sec)"}
+                },
+                "io_types": ["enable_input:digital_in", "speed_input:analog_in", "running_output:digital_out", "fault_output:digital_out", "feedback_output:analog_out"],
+                "link_types": ["reg_valve"]
+            },
+            "flow": {
+                "name": "Flow Meter Simulator",
+                "description": "Flow meter with pulse output",
+                "parameters": {
+                    "unit": {"type": "select", "default": "L/min", "options": ["L/sec", "L/min"], "label": "Unit"},
+                    "pulse_type": {"type": "select", "default": "quadrature", "options": ["single", "quadrature"], "label": "Pulse Type"},
+                    "velocity_ms": {"type": "number", "default": 1.5, "label": "Velocity (m/s)"},
+                    "noise_enabled": {"type": "boolean", "default": False, "label": "Noise Enabled"},
+                    "pulses_per_liter": {"type": "number", "default": 100, "label": "Pulses per Liter"}
+                },
+                "io_types": ["pulse_a_output:digital_out", "pulse_b_output:digital_out", "start_input:digital_in", "reset_input:digital_in"],
+                "link_types": ["pump"]
+            },
+            "reg_valve": {
+                "name": "Regulating Valve",
+                "description": "Modulating control valve",
+                "parameters": {
+                    "valve_type": {"type": "select", "default": "LVRA", "options": ["LVRA", "LVRD"], "label": "Valve Type"},
+                    "open_speed_sec": {"type": "number", "default": 10.0, "label": "Open Speed (sec)"},
+                    "close_speed_sec": {"type": "number", "default": 10.0, "label": "Close Speed (sec)"},
+                    "min_position_20_pct": {"type": "boolean", "default": False, "label": "20% Minimum"},
+                    "feedback_type": {"type": "select", "default": "analog", "options": ["analog", "switch"], "label": "Feedback Type"}
+                },
+                "io_types": ["position_input:analog_in", "open_input:digital_in", "hold_input:digital_in", "closed_limit_output:digital_out", "position_output:analog_out"],
+                "link_types": []
+            },
+            "tankbil": {
+                "name": "Tank Truck Simulator",
+                "description": "Safety interlock system",
+                "parameters": {
+                    "deadman_enabled": {"type": "boolean", "default": True, "label": "Deadman Enabled"}
+                },
+                "io_types": ["ground_ok_input:digital_in", "overfill_ok_input:digital_in", "deadman_input:digital_in", "test_ground_output:digital_out", "test_overfill_output:digital_out", "deadman_warning_output:digital_out"],
+                "link_types": []
+            }
+        }
+    }
+
 @app.post("/api/control/start")
 async def start_simulation():
     """Start the simulation"""

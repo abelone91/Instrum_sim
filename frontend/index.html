@@ -3,30 +3,229 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PLC Instrument Simulator</title>
+    <title>Industrial Simulator Control</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>PLC Instrument Simulator</h1>
-            <div class="status-bar">
-                <span id="connection-status" class="status-disconnected">Disconnected</span>
-                <span id="sim-status">Stopped</span>
-                <span id="update-rate">0 Hz</span>
-            </div>
-        </header>
-
-        <div class="controls">
-            <button id="btn-start" class="btn btn-primary">Start Simulation</button>
-            <button id="btn-stop" class="btn btn-secondary">Stop Simulation</button>
-            <button id="btn-refresh" class="btn">Refresh</button>
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-industry"></i>
+            <h2>PLC Simulator</h2>
         </div>
 
-        <div id="simulators" class="simulators-grid">
-            <!-- Simulator cards will be dynamically inserted here -->
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-view="dashboard">
+                <i class="fas fa-th-large"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-item" data-view="instruments">
+                <i class="fas fa-cogs"></i>
+                <span>Instruments</span>
+            </a>
+            <a href="#" class="nav-item" data-view="monitoring">
+                <i class="fas fa-chart-line"></i>
+                <span>Monitoring</span>
+            </a>
+            <a href="#" class="nav-item" data-view="settings">
+                <i class="fas fa-sliders-h"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="connection-status">
+                <div class="status-indicator" id="status-indicator"></div>
+                <span id="connection-text">Disconnected</span>
+            </div>
+            <div class="sim-controls">
+                <button class="btn-icon btn-success" id="btn-start" title="Start Simulation">
+                    <i class="fas fa-play"></i>
+                </button>
+                <button class="btn-icon btn-danger" id="btn-stop" title="Stop Simulation">
+                    <i class="fas fa-stop"></i>
+                </button>
+            </div>
         </div>
     </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header Bar -->
+        <div class="top-bar">
+            <div class="top-bar-left">
+                <h1 id="page-title">Dashboard</h1>
+                <span class="breadcrumb">Real-time Monitoring</span>
+            </div>
+            <div class="top-bar-right">
+                <div class="stat-card">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <div>
+                        <span class="stat-label">Update Rate</span>
+                        <span class="stat-value" id="update-rate">0 Hz</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-server"></i>
+                    <div>
+                        <span class="stat-label">Instruments</span>
+                        <span class="stat-value" id="instrument-count">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard View -->
+        <div class="view-container active" id="view-dashboard">
+            <div class="dashboard-actions">
+                <button class="btn btn-primary" id="btn-add-instrument">
+                    <i class="fas fa-plus"></i> Add Instrument
+                </button>
+                <button class="btn btn-secondary" id="btn-refresh">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+
+            <div id="simulators" class="simulators-grid">
+                <!-- Simulator cards will be dynamically inserted here -->
+            </div>
+        </div>
+
+        <!-- Instruments View -->
+        <div class="view-container" id="view-instruments">
+            <div class="instruments-list">
+                <h2>Configured Instruments</h2>
+                <div id="instruments-table-container">
+                    <!-- Instruments table will be inserted here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Monitoring View -->
+        <div class="view-container" id="view-monitoring">
+            <h2>Real-time Monitoring</h2>
+            <div class="monitoring-grid">
+                <!-- Monitoring charts will be added here in future -->
+                <div class="placeholder-content">
+                    <i class="fas fa-chart-area"></i>
+                    <p>Advanced monitoring features coming soon</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings View -->
+        <div class="view-container" id="view-settings">
+            <h2>System Settings</h2>
+            <div class="settings-grid">
+                <div class="setting-item">
+                    <label>Simulation Update Rate (Hz)</label>
+                    <input type="number" value="10" min="1" max="100">
+                </div>
+                <div class="setting-item">
+                    <label>Auto-start on Load</label>
+                    <input type="checkbox">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Instrument Modal -->
+    <div class="modal" id="instrument-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Add Instrument</h2>
+                <button class="btn-close" id="modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="instrument-form">
+                    <div class="form-group">
+                        <label>Instrument ID <span class="required">*</span></label>
+                        <input type="text" id="input-id" name="id" required placeholder="e.g., pump_01">
+                        <small>Unique identifier for this instrument</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Instrument Type <span class="required">*</span></label>
+                        <select id="input-type" name="type" required>
+                            <option value="">Select type...</option>
+                            <option value="level">Level Simulator</option>
+                            <option value="valve">Valve Simulator</option>
+                            <option value="pump">Pump Simulator</option>
+                            <option value="flow">Flow Meter</option>
+                            <option value="reg_valve">Regulating Valve</option>
+                            <option value="tankbil">Tank Truck</option>
+                        </select>
+                    </div>
+
+                    <div id="parameters-container" class="parameters-section">
+                        <h3>Parameters</h3>
+                        <div id="parameters-fields">
+                            <!-- Dynamic parameter fields will be inserted here -->
+                        </div>
+                    </div>
+
+                    <div class="io-configuration">
+                        <h3>I/O Configuration</h3>
+                        <div id="io-fields">
+                            <!-- Dynamic I/O fields will be inserted here -->
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="btn-cancel">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Instrument
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configure Instrument Modal -->
+    <div class="modal" id="config-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Configure <span id="config-instrument-name"></span></h2>
+                <button class="btn-close" id="config-modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="config-content">
+                    <!-- Configuration options will be inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="delete-modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2>Confirm Delete</h2>
+                <button class="btn-close" id="delete-modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete instrument <strong id="delete-instrument-name"></strong>?</p>
+                <p class="warning-text">This action cannot be undone.</p>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-delete">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="btn-confirm-delete">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container"></div>
 
     <script src="app.js"></script>
 </body>
