@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLC Instrument Simulator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PLC Instrument Simulator</h1>
+            <div class="status-bar">
+                <span id="connection-status" class="status-disconnected">Disconnected</span>
+                <span id="sim-status">Stopped</span>
+                <span id="update-rate">0 Hz</span>
+            </div>
+        </header>
+
+        <div class="controls">
+            <button id="btn-start" class="btn btn-primary">Start Simulation</button>
+            <button id="btn-stop" class="btn btn-secondary">Stop Simulation</button>
+            <button id="btn-refresh" class="btn">Refresh</button>
+        </div>
+
+        <div id="simulators" class="simulators-grid">
+            <!-- Simulator cards will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

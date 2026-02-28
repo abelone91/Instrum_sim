@@ -1,0 +1,83 @@
+# Simple Example Configuration
+# Minimal setup with one of each instrument type for testing
+
+instruments:
+  # Simple tank level
+  - id: tank_test
+    type: level
+    parameters:
+      tank_height_mm: 1000
+      height_100_percent: 1000
+      height_hh_alarm: 900
+      tank_volume_m3: 5.0
+
+    io:
+      level_output:
+        type: analog_out
+        i2c_address: 0x60
+      hh_alarm_output:
+        type: digital_out
+        pin: 17
+
+    links:
+      flowmeter: flow_test
+
+  # Simple pump
+  - id: pump_test
+    type: pump
+    parameters:
+      control_type: "digital"
+      max_pressure_bar: 10.0
+      set_pressure_bar: 7.0
+      max_flow_lpm: 50.0
+      ramp_time_sec: 3.0
+
+    io:
+      enable_input:
+        type: digital_in
+        pin: 5
+      running_output:
+        type: digital_out
+        pin: 6
+      fault_output:
+        type: digital_out
+        pin: 13
+
+  # Simple flow meter
+  - id: flow_test
+    type: flow
+    parameters:
+      unit: "L/min"
+      pulse_type: "quadrature"
+      pulses_per_liter: 50
+
+    io:
+      pulse_a_output:
+        type: digital_out
+        pin: 27
+      pulse_b_output:
+        type: digital_out
+        pin: 22
+      start_input:
+        type: digital_in
+        pin: 23
+
+    links:
+      pump: pump_test
+
+  # Simple valve
+  - id: valve_test
+    type: valve
+    parameters:
+      open_speed_sec: 3.0
+      close_speed_sec: 3.0
+      has_hold_solenoid: false
+      has_return_spring: true
+
+    io:
+      open_input:
+        type: digital_in
+        pin: 16
+      close_input:
+        type: digital_in
+        pin: 12

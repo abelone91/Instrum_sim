@@ -1,0 +1,281 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+header {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.status-bar {
+    display: flex;
+    gap: 20px;
+    margin-top: 10px;
+}
+
+.status-bar span {
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.status-connected {
+    background: #10b981;
+    color: white;
+}
+
+.status-disconnected {
+    background: #ef4444;
+    color: white;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-primary {
+    background: #10b981;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #059669;
+}
+
+.btn-secondary {
+    background: #ef4444;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #dc2626;
+}
+
+.btn {
+    background: #6b7280;
+    color: white;
+}
+
+.btn:hover {
+    background: #4b5563;
+}
+
+.simulators-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+.simulator-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.simulator-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.simulator-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
+.simulator-type {
+    font-size: 12px;
+    padding: 4px 12px;
+    background: #667eea;
+    color: white;
+    border-radius: 12px;
+}
+
+.simulator-data {
+    display: grid;
+    gap: 10px;
+}
+
+.data-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.data-label {
+    font-weight: 500;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.data-value {
+    font-weight: 600;
+    color: #333;
+    font-size: 16px;
+}
+
+.indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-left: 8px;
+}
+
+.indicator-on {
+    background: #10b981;
+    box-shadow: 0 0 8px #10b981;
+}
+
+.indicator-off {
+    background: #6b7280;
+}
+
+.indicator-alarm {
+    background: #ef4444;
+    box-shadow: 0 0 8px #ef4444;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 24px;
+    background: #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    transition: width 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Level simulator specific */
+.level-display {
+    width: 100%;
+    height: 200px;
+    border: 2px solid #333;
+    border-radius: 5px;
+    position: relative;
+    background: #f3f4f6;
+    overflow: hidden;
+    margin: 10px 0;
+}
+
+.level-fill {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    background: linear-gradient(180deg, #3b82f6 0%, #1e40af 100%);
+    transition: height 0.5s;
+}
+
+.level-alarm-line {
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background: #ef4444;
+    border-top: 2px dashed #ef4444;
+}
+
+/* Valve display */
+.valve-display {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin: 15px 0;
+}
+
+.valve-indicator {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: white;
+    font-size: 14px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.valve-closed {
+    background: #ef4444;
+}
+
+.valve-open {
+    background: #10b981;
+}
+
+.valve-partial {
+    background: #f59e0b;
+}
+
+/* Pump display */
+.pump-display {
+    text-align: center;
+    margin: 15px 0;
+}
+
+.pump-icon {
+    font-size: 60px;
+    color: #667eea;
+    margin: 10px 0;
+}
+
+.pump-running {
+    animation: pump-pulse 1s infinite;
+}
+
+@keyframes pump-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}

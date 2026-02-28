@@ -1,0 +1,162 @@
+# PLC Instrument Simulator Configuration
+# This file defines all instruments and their I/O allocations
+
+# Hardware Configuration Notes:
+# - GPIO pins use BCM numbering
+# - DAC addresses: 0x60-0x67 (MCP4725 supports 0x60, 0x61, 0x62, 0x63)
+# - ADC addresses: 0x48-0x4B (ADS1115 supports 0x48, 0x49, 0x4A, 0x4B)
+# - ADC channels: 0-3 (4 channels per ADS1115)
+
+instruments:
+  # Tank Level Simulator
+  - id: tank_01
+    type: level
+    parameters:
+      tank_height_mm: 2000
+      height_100_percent: 2000
+      height_hh_alarm: 1800
+      tank_volume_m3: 10.0
+
+    io:
+      level_output:
+        type: analog_out
+        i2c_address: 0x60
+        channel: 0
+      hh_alarm_output:
+        type: digital_out
+        pin: 17
+
+    links:
+      flowmeter: flow_01
+
+  # Flow Meter Simulator
+  - id: flow_01
+    type: flow
+    parameters:
+      unit: "L/min"
+      pulse_type: "quadrature"
+      velocity_ms: 1.5
+      noise_enabled: false
+      noise_dropout_ms: 10
+      pulses_per_liter: 100
+
+    io:
+      pulse_a_output:
+        type: digital_out
+        pin: 27
+      pulse_b_output:
+        type: digital_out
+        pin: 22
+      start_input:
+        type: digital_in
+        pin: 23
+      reset_input:
+        type: digital_in
+        pin: 24
+
+    links:
+      pump: pump_01
+
+  # Pump Simulator
+  - id: pump_01
+    type: pump
+    parameters:
+      control_type: "digital"
+      max_pressure_bar: 10.0
+      set_pressure_bar: 8.0
+      max_flow_lpm: 100.0
+      ramp_time_sec: 5.0
+
+    io:
+      enable_input:
+        type: digital_in
+        pin: 5
+      running_output:
+        type: digital_out
+        pin: 6
+      fault_output:
+        type: digital_out
+        pin: 13
+      feedback_output:
+        type: analog_out
+        i2c_address: 0x61
+        channel: 0
+
+    links:
+      reg_valve: reg_valve_01
+
+  # Regulating Valve Simulator
+  - id: reg_valve_01
+    type: reg_valve
+    parameters:
+      valve_type: "LVRA"
+      open_speed_sec: 10.0
+      close_speed_sec: 10.0
+      min_position_20_pct: false
+      feedback_type: "analog"
+
+    io:
+      position_input:
+        type: analog_in
+        i2c_address: 0x48
+        channel: 0
+      open_input:
+        type: digital_in
+        pin: 19
+      hold_input:
+        type: digital_in
+        pin: 26
+      closed_limit_output:
+        type: digital_out
+        pin: 20
+      position_output:
+        type: analog_out
+        i2c_address: 0x62
+        channel: 0
+
+  # On/Off Valve Simulator
+  - id: valve_01
+    type: valve
+    parameters:
+      open_speed_sec: 5.0
+      close_speed_sec: 5.0
+      has_hold_solenoid: true
+      has_return_spring: false
+      valve_type: "import"
+
+    io:
+      open_input:
+        type: digital_in
+        pin: 16
+      close_input:
+        type: digital_in
+        pin: 12
+      hold_input:
+        type: digital_in
+        pin: 25
+
+  # Tank Truck Safety Simulator
+  - id: tankbil_01
+    type: tankbil
+    parameters:
+      deadman_enabled: true
+
+    io:
+      ground_ok_input:
+        type: digital_in
+        pin: 7
+      overfill_ok_input:
+        type: digital_in
+        pin: 8
+      deadman_input:
+        type: digital_in
+        pin: 11
+      test_ground_output:
+        type: digital_out
+        pin: 9
+      test_overfill_output:
+        type: digital_out
+        pin: 10
+      deadman_warning_output:
+        type: digital_out
+        pin: 21
