@@ -48,12 +48,36 @@ pip install -r requirements.txt
 
 3. Run the simulator:
 ```bash
-python backend/main.py
+python run.py
 ```
 
 4. Open web interface: `http://localhost:8000`
 
+## Wiring & Hardware Setup
+
+**Complete wiring documentation available:**
+
+- **[QUICK_WIRING_GUIDE.md](QUICK_WIRING_GUIDE.md)** - Quick visual reference with shopping lists
+- **[EXAMPLE_PUMP_WIRING.md](EXAMPLE_PUMP_WIRING.md)** - Complete step-by-step pump simulator example
+- **[docs/WIRING_DIAGRAMS.md](docs/WIRING_DIAGRAMS.md)** - Comprehensive circuits and diagrams
+- **[docs/SETUP.md](docs/SETUP.md)** - Detailed installation and hardware setup
+- **[docs/USAGE.md](docs/USAGE.md)** - Configuration and operation guide
+
+**Recommended starting point:**
+1. Read [QUICK_WIRING_GUIDE.md](QUICK_WIRING_GUIDE.md) for overview
+2. Follow [EXAMPLE_PUMP_WIRING.md](EXAMPLE_PUMP_WIRING.md) for your first build
+3. Reference [docs/WIRING_DIAGRAMS.md](docs/WIRING_DIAGRAMS.md) for other instrument types
+
 ## Configuration
 
+### Via Web Interface (NEW!)
+
+1. Open `http://localhost:8000`
+2. Click "Add Instrument" button
+3. Select instrument type and configure parameters
+4. Save - configuration automatically updated!
+
+### Via YAML File
+
 Edit `config/instruments.yaml` to define your instruments and I/O allocation.
-See `config/example.yaml` for reference.
+See `config/example_simple.yaml` for reference.
